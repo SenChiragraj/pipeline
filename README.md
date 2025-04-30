@@ -1,2 +1,0 @@
-# Pipeline
-CI CD Pipeline 
