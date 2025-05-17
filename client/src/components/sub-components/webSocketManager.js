@@ -10,29 +10,22 @@ const useWebSocket = () => {
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
       onConnect: () => {
-        console.log('WebSocket connected');
+        console.log('✅ WebSocket connected');
 
-        // Push event notifications
         stompClient.subscribe('/topic/push', (message) => {
+          console.log('📨 Push received:', message.body);
           toast.info(`🚀${message.body}`);
         });
 
         stompClient.subscribe('/topic/error', (message) => {
-          toast.error(`Error : ${message.body}`);
+          console.log('❌ Error received:', message.body);
+          toast.error(`Error: ${message.body}`);
         });
 
-        // stompClient.subscribe('/topic/clone', (message) => {
-        //   toast.info(`${message.body}`);
-        // });
-
-        // Build status notifications
         stompClient.subscribe('/topic/build', (message) => {
+          console.log('🔧 Build update:', message.body);
           toast.success(`🛠️${message.body}`);
         });
-
-        // stompClient.subscribe('/topic/test', (message) => {
-        //   toast.success(`🤺${message.body}`);
-        // });
       },
       onStompError: (frame) => {
         console.error('WebSocket error', frame);

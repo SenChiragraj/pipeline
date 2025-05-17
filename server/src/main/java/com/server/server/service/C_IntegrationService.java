@@ -43,14 +43,11 @@ public class C_IntegrationService {
             if (cloneExit != 0) {
                 status = "failed";
                 logBuilder.append("Git clone failed\n");
-                notificationService.sendBuildStatus("Cloning Failed");
-//                saveLogAndReturn(repoFullName, status, logBuilder, timestamp);
                 return logBuilder;
             }
             logBuilder.append("Cloning completed.\n");
             logger.info("Cloning complete");
             // 3. Run npm install
-            notificationService.sendBuildStatus("Installing Packages");
             String npmCmd = getNpmCommand();
             ProcessBuilder installPb = new ProcessBuilder(npmCmd, "install");
             installPb.directory(new File(cloneDir));
@@ -68,7 +65,6 @@ public class C_IntegrationService {
 
 
             // 4. Run npm test
-            notificationService.sendPushEvent("Running Test Cases");
             ProcessBuilder testPb = new ProcessBuilder(npmCmd, "test");
             testPb.directory(new File(cloneDir));
             testPb.redirectErrorStream(true);
@@ -77,21 +73,17 @@ public class C_IntegrationService {
             int testExit = testProcess.waitFor();
             if (testExit != 0) {
                 status = "failed";
-                notificationService.sendErrorStatus("Test Cases Failed");
                 logBuilder.append("npm test failed\n");
             } else {
-                notificationService.sendPushEvent("Test Cases Passed " + repoFullName);
-
                 logBuilder.append("npm test completed successfully.\n");
             }
             notificationService.sendBuildStatus("Build Completed" + repoFullName);
 
         } catch (Exception e) {
             status = "failed";
+            logger.error(e.getMessage());
             logBuilder.append("Error: ").append(e.getMessage()).append("\n");
-            logger.info(logBuilder.toString());
         }
-        logger.info(logBuilder.toString());
         return logBuilder;
 //        saveLogAndReturn(repoFullName, status, logBuilder, timestamp);
     }
