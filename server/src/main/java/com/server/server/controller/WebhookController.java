@@ -2,11 +2,14 @@ package com.server.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.server.models.BuildLogs;
+import com.server.server.models.CommitInfo;
+import com.server.server.models.CommitUserModel;
 import com.server.server.models.WebhookLog;
 import com.server.server.repository.BuildLogRepo;
 import com.server.server.repository.WebhookLogRepo;
 import com.server.server.service.C_IntegrationService;
 import com.server.server.service.NotificationService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -23,17 +26,13 @@ import java.net.http.HttpClient;
 import org.springframework.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 // WebhookController.java
+@Slf4j
 @RestController
 @RequestMapping("/api/webhook")
 public class WebhookController {
@@ -93,22 +92,65 @@ public class WebhookController {
 
     @PostMapping("/receive")
     public ResponseEntity<String> receiveWebhook(@RequestBody Map<String, Object> payload) {
-        Map<String, Object> repository = (Map<String, Object>) payload.get("repository");
-        String repoFullName = (String) repository.get("full_name");
-        String accessToken = (String) payload.get("access_token");
+        try {
+            BuildLogs buildLog = new BuildLogs();
+            Map<String, Object> repository = (Map<String, Object>) payload.get("repository");
+            String repoFullName = (String) repository.get("full_name");
+            String accessToken = (String) payload.get("access_token");
 
-        // Respond immediately, but do heavy work in background
-        CompletableFuture.runAsync(() -> {
-            // Send notification (e.g., via WebSocket)
-            notificationService.sendPushEvent("New push by " + repoFullName);
+            // Extract commits
+            List<Map<String, Object>> commitList = (List<Map<String, Object>>) payload.get("commits");
+            List<CommitInfo> commitInfos = new ArrayList<>();
 
-            // Trigger the CI build
-            cIntegrationService.triggerBuild(repoFullName, accessToken);
-        });
+            for (Map<String, Object> commit : commitList) {
+                String id = (String) commit.get("id");
+                String message = (String) commit.get("message");
+                String timestamp = (String) commit.get("timestamp");
 
-        // Immediate response to GitHub (avoid timeout)
-        return ResponseEntity.ok("Build triggered");
+                Map<String, Object> authorMap = (Map<String, Object>) commit.get("author");
+                String authorName = (String) authorMap.get("name");
+                String authorEmail = (String) authorMap.get("email");
+                String authorUsername = (String) authorMap.get("username");
+
+                buildLog.setAuthor(new CommitUserModel(authorName, authorEmail, authorUsername));
+
+                Map<String, Object> pusherMap = (Map<String, Object>) commit.get("committer");
+                String pusherName = (String) pusherMap.get("name");
+                String pusherEmail = (String) pusherMap.get("email");
+                String pusherUsername = (String) pusherMap.get("username");
+
+                buildLog.setPusher(new CommitUserModel(pusherName, pusherEmail, pusherUsername));
+
+                commitInfos.add(new CommitInfo(id, message, timestamp));
+            }
+
+            // Create BuildLogs entry
+            buildLog.setRepoName(repoFullName);
+            buildLog.setCommits(commitInfos);
+            buildLog.setTimestamp(Instant.now().toString()); // consistent ISO format
+            buildLog.setStatus("pending"); // initial status
+            buildLog.setMessage("Build triggered from push event");
+
+            // Save to DB
+
+
+            // Async build trigger and notification
+            CompletableFuture.runAsync(() -> {
+                notificationService.sendPushEvent("New push to " + repoFullName);
+                StringBuilder logs = cIntegrationService.triggerBuild(repoFullName, accessToken);
+                buildLog.setLogs(logs.toString());
+                buildLog.setStatus(logs.toString().contains("failed") ? "failed" : "success");
+                buildLogRepo.save(buildLog); // ✅ Save here after logs are set
+            });
+
+            return ResponseEntity.ok("Build triggered");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Webhook processing failed: " + e.getMessage());
+        }
     }
+
 
 
 

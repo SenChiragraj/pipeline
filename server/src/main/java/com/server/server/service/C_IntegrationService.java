@@ -22,7 +22,7 @@ public class C_IntegrationService {
 
     private static final Logger logger = LoggerFactory.getLogger(C_IntegrationService.class);
 
-    public void triggerBuild(String repoFullName, String accessToken) {
+    public StringBuilder triggerBuild(String repoFullName, String accessToken) {
         String status = "success";
         StringBuilder logBuilder = new StringBuilder();
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
@@ -44,8 +44,8 @@ public class C_IntegrationService {
                 status = "failed";
                 logBuilder.append("Git clone failed\n");
                 notificationService.sendBuildStatus("Cloning Failed");
-                saveLogAndReturn(repoFullName, status, logBuilder, timestamp);
-                return;
+//                saveLogAndReturn(repoFullName, status, logBuilder, timestamp);
+                return logBuilder;
             }
             logBuilder.append("Cloning completed.\n");
             logger.info("Cloning complete");
@@ -61,8 +61,8 @@ public class C_IntegrationService {
             if (installExit != 0) {
                 status = "failed";
                 logBuilder.append("npm install failed\n");
-                saveLogAndReturn(repoFullName, status, logBuilder, timestamp);
-                return;
+//                saveLogAndReturn(repoFullName, status, logBuilder, timestamp);
+                return logBuilder;
             }
             logBuilder.append("npm install completed.\n");
 
@@ -92,7 +92,8 @@ public class C_IntegrationService {
             logger.info(logBuilder.toString());
         }
         logger.info(logBuilder.toString());
-        saveLogAndReturn(repoFullName, status, logBuilder, timestamp);
+        return logBuilder;
+//        saveLogAndReturn(repoFullName, status, logBuilder, timestamp);
     }
 
     // Helper to log process output
@@ -132,14 +133,14 @@ public class C_IntegrationService {
     }
 
     // Helper to save log and log to logger
-    private void saveLogAndReturn(String repoFullName, String status, StringBuilder logBuilder, String timestamp) {
-        BuildLogs log = new BuildLogs(repoFullName, status, logBuilder.toString(), timestamp);
-        try {
-            buildLogRepo.save(log);
-            logger.info("Build log saved to DB.");
-        } catch (Exception e) {
-            logger.error("Failed to save build log to DB: {}", e.getMessage(), e);
-        }
-
-    }
+//    private void saveLogAndReturn(String repoFullName, String status, StringBuilder logBuilder, String timestamp) {
+////        BuildLogs log = new BuildLogs(repoFullName, status, logBuilder.toString(), timestamp);
+//        try {
+//            buildLogRepo.save(log);
+//            logger.info("Build log saved to DB.");
+//        } catch (Exception e) {
+//            logger.error("Failed to save build log to DB: {}", e.getMessage(), e);
+//        }
+//
+//    }
 }
