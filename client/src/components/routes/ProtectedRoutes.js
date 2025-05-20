@@ -5,7 +5,7 @@ import { isAuthenticated } from '../auth/authSessions'; // Adjust path as needed
 import Navbar from '../sub-components/navigation/Navbar';
 
 const ProtectedRoute = () => {
-  return isAuthenticated() ? (
+  return !isAuthenticated() ? (
     <>
       <Navbar />
       <Outlet />
