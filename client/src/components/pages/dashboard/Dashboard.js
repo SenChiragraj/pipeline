@@ -4,17 +4,22 @@
 //   ClockIcon,
 //   Cog8ToothIcon,
 //   PlusIcon,
-// } from '@heroicons/react/24/outline'; // Use Heroicons or replace with your icons
+// } from '@heroicons/react/24/outline';
 // import SidebarItem from './functional/sideBarItem';
 
 // const Dashboard = () => {
 //   return (
-//     <div className="min-h-screen bg-[#fafbfc]">
+//     <div className="   bg-white text-black">
 //       <div className="flex pt-6 px-8">
 //         {/* Sidebar */}
-//         <aside className="w-64 pr-6">
-//           <ul className="space-y-1 mb-8">
+//         <aside className="w-64 pr-6 bg-gray-100 border border-gray-200 rounded-lg shadow-sm py-4">
+//           <ul className="space-y-2 mb-6 px-3">
 //             <SidebarItem icon={PlusIcon} label="New Item" route={'new-item'} />
+//             <SidebarItem
+//               icon={Cog8ToothIcon}
+//               label="Open Projects"
+//               route={'open-projects'}
+//             />
 //             <SidebarItem icon={UserIcon} label="People" route={'people'} />
 //             <SidebarItem
 //               icon={ClockIcon}
@@ -27,21 +32,22 @@
 //               route={'manage'}
 //             />
 //           </ul>
+
 //           {/* Collapsible Sections */}
-//           <div className="mb-2">
-//             <details open className="mb-2">
-//               <summary className="bg-gray-100 px-3 py-2 rounded font-medium cursor-pointer">
+//           <div className="px-3 text-sm text-gray-700">
+//             <details open className="mb-3">
+//               <summary className="bg-gray-200 px-3 py-2 rounded font-medium cursor-pointer">
 //                 Build Queue
 //               </summary>
-//               <div className="px-3 py-2 text-sm text-gray-500">
+//               <div className="px-3 py-2 text-gray-600">
 //                 No builds in the queue.
 //               </div>
 //             </details>
 //             <details open>
-//               <summary className="bg-gray-100 px-3 py-2 rounded font-medium cursor-pointer">
+//               <summary className="bg-gray-200 px-3 py-2 rounded font-medium cursor-pointer">
 //                 Build Executor Status
 //               </summary>
-//               <div className="px-3 py-2 text-sm text-gray-700">
+//               <div className="px-3 py-2 text-gray-700 space-y-1">
 //                 <div>
 //                   1 <span className="text-gray-500">Idle</span>
 //                 </div>
@@ -52,58 +58,49 @@
 //             </details>
 //           </div>
 //         </aside>
+
 //         {/* Main Content */}
-//         <main className="flex-1 flex flex-col items-center">
-//           <div className="w-full max-w-2xl bg-white rounded-lg shadow-sm p-10">
-//             <div className="flex justify-between items-center mb-2">
-//               <h1 className="text-3xl font-bold">Welcome to Jenkins!</h1>
-//               <button className="text-gray-500 text-base flex items-center gap-1 hover:text-gray-700">
-//                 <svg
-//                   className="h-5 w-5"
-//                   fill="none"
-//                   stroke="currentColor"
-//                   viewBox="0 0 24 24"
-//                 >
-//                   <path
-//                     d="M12 4v16m8-8H4"
-//                     strokeWidth={2}
-//                     strokeLinecap="round"
-//                     strokeLinejoin="round"
-//                   />
-//                 </svg>
+//         <main className="flex-1 flex justify-center items-start">
+//           <div className="w-full max-w-2xl bg-white border border-gray-200 rounded-xl shadow p-10 mt-10">
+//             <div className="flex justify-between items-center mb-6">
+//               <h1 className="text-3xl font-bold text-black">
+//                 Welcome to Jenkins!
+//               </h1>
+//               <button className="text-gray-600 text-base flex items-center gap-1 hover:text-black">
+//                 <PlusIcon className="h-5 w-5" />
 //                 Add description
 //               </button>
 //             </div>
-//             <p className="text-gray-600 mb-8 text-base">
+
+//             <p className="text-gray-700 mb-8 text-base">
 //               This page is where your Jenkins jobs will be displayed. To get
 //               started, you can set up distributed builds or start building a
 //               software project.
 //             </p>
+
 //             <div className="mb-8">
-//               <h2 className="font-semibold mb-3 text-xl">
+//               <h2 className="font-semibold mb-3 text-xl text-gray-800">
 //                 Start building your software project
 //               </h2>
-//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition mb-2 text-lg font-medium">
-//                 Create a job
-//                 <span className="text-xl">&rarr;</span>
+//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition mb-2 text-lg font-medium">
+//                 Create a job <span className="text-xl">&rarr;</span>
 //               </button>
 //             </div>
+
 //             <div>
-//               <h2 className="font-semibold mb-3 text-xl">
+//               <h2 className="font-semibold mb-3 text-xl text-gray-800">
 //                 Set up a distributed build
 //               </h2>
-//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition mb-2 text-lg font-medium">
-//                 Set up an agent
-//                 <span className="text-xl">&rarr;</span>
+//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition mb-2 text-lg font-medium">
+//                 Set up an agent <span className="text-xl">&rarr;</span>
 //               </button>
-//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition mb-2 text-lg font-medium">
-//                 Configure a cloud
-//                 <span className="text-xl">&rarr;</span>
+//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition mb-2 text-lg font-medium">
+//                 Configure a cloud <span className="text-xl">&rarr;</span>
 //               </button>
-//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 transition text-lg font-medium">
+//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition text-lg font-medium">
 //                 Learn more about distributed builds
 //                 <svg
-//                   className="h-5 w-5"
+//                   className="h-5 w-5 ml-2"
 //                   fill="none"
 //                   stroke="currentColor"
 //                   viewBox="0 0 24 24"
@@ -130,7 +127,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getToken, logout, isAuthenticated } from '../../auth/authSessions';
 import { useRepo } from '../../../context/RepoContext';
-import useWebSocket from '../../sub-components/webSocketManager';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -139,8 +135,6 @@ const Dashboard = () => {
   const hasFetched = useRef(false); // ✅ guard to avoid duplicate fetch
   const { setRepoFullName } = useRepo();
   const accessToken = getToken();
-
-  useWebSocket();
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -191,7 +185,10 @@ const Dashboard = () => {
       {repos.map((repo) => (
         <div key={repo.id}>
           <span>{repo.full_name}</span>
-          <button onClick={() => createWebhook(repo.full_name)}>
+          <button
+            className="px-2 border-1"
+            onClick={() => createWebhook(repo.full_name)}
+          >
             Create Webhook
           </button>
 

@@ -22,21 +22,19 @@ public class C_IntegrationService {
 
     private static final Logger logger = LoggerFactory.getLogger(C_IntegrationService.class);
 
-    public StringBuilder triggerBuild(String repoFullName, String accessToken) {
+    public StringBuilder triggerBuild(String repoFullName, String accessToken)  {
         String status = "success";
         StringBuilder logBuilder = new StringBuilder();
-        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+//        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 
-        String repoName = repoFullName.split("/")[1];
-        String cloneDir = "D:/PROJECTS/cicd/server/tmp/ci-repos/" + repoName;
+//        String repoName = repoFullName.split("/")[1];
+        String cloneDir = "D:/PROJECTS/cicd/server/tmp/ci-repos/";
 
         try {
             // 1. Clean previous clone (cross-platform)
-            deleteDirectory(new File(cloneDir));
-            logBuilder.append("Cleaned previous clone.\n");
-            logger.info("Cloning");
+
             // 2. Clone the repo
-            String cloneCommand = "git clone https://oauth2:" + accessToken + "@github.com/" + repoFullName + ".git " + cloneDir;
+            String cloneCommand = "git clone --depth=1 https://oauth2:" + accessToken + "@github.com/" + repoFullName + ".git " + cloneDir;
             Process cloneProcess = Runtime.getRuntime().exec(cloneCommand);
             logProcessOutput(cloneProcess, logBuilder);
             int cloneExit = cloneProcess.waitFor();
@@ -74,15 +72,20 @@ public class C_IntegrationService {
             if (testExit != 0) {
                 status = "failed";
                 logBuilder.append("npm test failed\n");
+                throw new Exception("Test Cases Failed");
             } else {
-                logBuilder.append("npm test completed successfully.\n");
+                logBuilder.append("Test Cases Passed✅.\n");
             }
-            notificationService.sendBuildStatus("Build Completed" + repoFullName);
-
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         } catch (Exception e) {
-            status = "failed";
-            logger.error(e.getMessage());
-            logBuilder.append("Error: ").append(e.getMessage()).append("\n");
+            throw new RuntimeException(e);
+        } finally {
+            deleteDirectory(new File(cloneDir));
+            logBuilder.append("Cleaned previous clone.\n");
+            notificationService.sendBuildStatus("Build Completed" + repoFullName);
         }
         return logBuilder;
 //        saveLogAndReturn(repoFullName, status, logBuilder, timestamp);
@@ -99,20 +102,30 @@ public class C_IntegrationService {
     }
 
     // Helper to delete directory recursively (cross-platform)
-    private void deleteDirectory(File dir) throws IOException {
-        if (!dir.exists()) return;
-        if (dir.isDirectory()) {
-            File[] entries = dir.listFiles();
-            if (entries != null) {
-                for (File file : entries) {
-                    deleteDirectory(file);
+
+    private void deleteDirectory(File dir) {
+        try {
+            if (!dir.exists()) return;
+
+            if (dir.isDirectory()) {
+                File[] entries = dir.listFiles();
+                if (entries != null) {
+                    for (File file : entries) {
+                        deleteDirectory(file);
+                    }
                 }
             }
-        }
-        if (!dir.delete()) {
-            throw new IOException("Failed to delete " + dir);
+
+            if (!dir.delete()) {
+                throw new IOException("Failed to delete directory or file.");
+            }
+//            logger.info("Deleted Clone🗑️");
+        } catch (Exception e) {
+            // Log a generic error without exposing the full path
+            logger.error("Failed to delete a directory during cleanup: {}", e.getMessage());
         }
     }
+
 
     // Helper to get correct npm command for OS
     private String getNpmCommand() {

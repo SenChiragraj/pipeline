@@ -1,0 +1,48 @@
+name:
+  CI/CD: Merge dev to prod if tests pass
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Setup Java or Node or your build env
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Run your tests (example: Maven for Java)
+      - name: Run tests
+        run: |
+          ./mvnw clean test
+
+      # If tests pass, merge dev into prod
+      - name: Merge dev into prod
+        if: success()
+        run: |
+          git config --global user.email "ci-bot@example.com"
+          git config --global user.name "CI Bot"
+
+          # Fetch both branches
+          git fetch origin dev
+          git fetch origin prod
+
+          # Checkout prod and merge dev
+          git checkout -b prod origin/prod
+          git merge origin/dev --no-ff -m "Auto-merge dev into prod after passing tests"
+
+          # Push to prod
+          git push origin prod
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
