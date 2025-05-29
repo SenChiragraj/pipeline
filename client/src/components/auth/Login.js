@@ -1,32 +1,30 @@
 import React from 'react';
 import GitHubLogin from './GithubLogin';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
+  const navigate = useNavigate(); // Initialize navigation function
+
   return (
-    <section className="flex flex-col items-center justify-center min-h-screen p-8">
-      {/* Branding Section */}
-      <div className="max-w-xl mx-auto border-l-4 border-white px-6">
-        <h1 className="text-5xl font-extrabold tracking-wide mb-2 text-center">
-          Jenking
-        </h1>
-        <p className="text-base opacity-75 text-center">
-          Your gateway to seamless development
+    <section className="bg-gray-100">
+      {/* Login Form */}
+      <main className="flex items-center justify-center flex-col min-h-screen">
+        <div>
+          <h1 className="lg:text-8xl changa-one-regular">
+            Welcome to Jenkings
+          </h1>
+        </div>
+        <p className="text-xl opacity-75 text-center mt-3">
+          Your gateway to seamless CI/CD development
         </p>
-
-        {/* Login Prompt */}
-        <h2 className="text-xl sm:text-2xl font-bold leading-snug mt-8 text-left">
-          Sign in with
-          <span className="text-5xl md:text-2xl opacity-80 hover:opacity-100 mx-2 transition-all duration-300">
-            GitHub
-          </span>
-          to continue..
-        </h2>
-
         {/* Styled GitHub Button */}
-        <div className="mt-3">
+        <div className="mt-3 flex flex-row items-center gap-3">
+          <button className="btn-dark" onC lick={() => navigate('/docs')}>
+            Documentation
+          </button>
           <GitHubLogin />
         </div>
-      </div>
+      </main>
     </section>
   );
 }

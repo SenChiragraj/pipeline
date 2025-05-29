@@ -6,7 +6,7 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    'Changa One', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -47,4 +47,10 @@ code {
 /* Focus effect for accessibility */
 .btn-dark:focus {
   outline: 3px solid rgba(255, 255, 255, 0.6); /* High contrast outline */
+}
+
+.changa-one-regular {
+  font-family: 'Changa One', sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
