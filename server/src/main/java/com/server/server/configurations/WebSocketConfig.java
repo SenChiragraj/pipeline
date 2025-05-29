@@ -10,9 +10,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // WebSocket endpoint that React app connects to
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
-}
+        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:3000").withSockJS();
+    }
+
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {

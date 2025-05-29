@@ -1,6 +1,8 @@
 package com.server.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.server.server.actions.WebhookActions;
+import com.server.server.exceptions.InvalidPayloadException;
 import com.server.server.models.BuildLogs;
 import com.server.server.models.CommitInfo;
 import com.server.server.models.CommitUserModel;
@@ -11,9 +13,7 @@ import com.server.server.service.C_IntegrationService;
 import com.server.server.service.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -23,9 +23,9 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 //import java.net.http.HttpHeaders;
-import org.springframework.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -51,6 +51,9 @@ public class WebhookController {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    WebhookActions webhookActions;
+
 
     private static final String GITHUB_API_URL = "https://api.github.com/repos/";
 
@@ -59,99 +62,49 @@ public class WebhookController {
         String repoFullName = request.get("repoFullName");
         String accessToken = request.get("accessToken");
 
-        try {
-            HttpClient client = HttpClient.newHttpClient();
-            String webhookUrl = "https://3b3b-2409-40c4-f7-eaea-d427-9dac-81a7-afab.ngrok-free.app/api/webhook/receive"; // this should be public
-
-            String jsonPayload = """
-                    {
-                      "name": "web",
-                      "active": true,
-                      "events": ["push"],
-                      "config": {
-                        "url": "%s",
-                        "content_type": "json"
-                      }
-                    }
-                    """.formatted(webhookUrl);
-
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.github.com/repos/" + repoFullName + "/hooks"))
-                    .header("Authorization", "Bearer " + accessToken)
-                    .header("Accept", "application/vnd.github.v3+json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-                    .build();
-
-            HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            return ResponseEntity.ok(response.body());
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Failed to create webhook");
+        if (repoFullName == null || repoFullName.isEmpty()) {
+            throw new IllegalArgumentException("repoFullName is required");
         }
+        if (accessToken == null || accessToken.isEmpty()) {
+            throw new IllegalArgumentException("accessToken is required");
+        }
+
+        String responseBody = webhookActions.createWebhook(repoFullName, accessToken);
+        return ResponseEntity.ok(responseBody);
     }
+
 
     @PostMapping("/receive")
     public ResponseEntity<String> receiveWebhook(@RequestBody Map<String, Object> payload) {
-        try {
-            BuildLogs buildLog = new BuildLogs();
-            Map<String, Object> repository = (Map<String, Object>) payload.get("repository");
-            String repoFullName = (String) repository.get("full_name");
-            String accessToken = (String) payload.get("access_token");
 
-            // Extract commits
-            List<Map<String, Object>> commitList = (List<Map<String, Object>>) payload.get("commits");
-            List<CommitInfo> commitInfos = new ArrayList<>();
+        String ref = (String) payload.get("ref"); // e.g. "refs/heads/dev"
 
-            for (Map<String, Object> commit : commitList) {
-                String id = (String) commit.get("id");
-                String message = (String) commit.get("message");
-                String timestamp = (String) commit.get("timestamp");
-
-                Map<String, Object> authorMap = (Map<String, Object>) commit.get("author");
-                String authorName = (String) authorMap.get("name");
-                String authorEmail = (String) authorMap.get("email");
-                String authorUsername = (String) authorMap.get("username");
-
-                buildLog.setAuthor(new CommitUserModel(authorName, authorEmail, authorUsername));
-
-                Map<String, Object> pusherMap = (Map<String, Object>) commit.get("committer");
-                String pusherName = (String) pusherMap.get("name");
-                String pusherEmail = (String) pusherMap.get("email");
-                String pusherUsername = (String) pusherMap.get("username");
-
-                buildLog.setPusher(new CommitUserModel(pusherName, pusherEmail, pusherUsername));
-
-                commitInfos.add(new CommitInfo(id, message, timestamp));
-            }
-
-            // Create BuildLogs entry
-            buildLog.setRepoName(repoFullName);
-            buildLog.setCommits(commitInfos);
-            buildLog.setTimestamp(Instant.now().toString()); // consistent ISO format
-            buildLog.setStatus("pending"); // initial status
-            buildLog.setMessage("Build triggered from push event");
-
-            // Save to DB
-
-
-            // Async build trigger and notification
-            CompletableFuture.runAsync(() -> {
-                notificationService.sendPushEvent("New push to " + repoFullName);
-                StringBuilder logs = cIntegrationService.triggerBuild(repoFullName, accessToken);
-                buildLog.setLogs(logs.toString());
-                buildLog.setStatus(logs.toString().contains("failed") ? "failed" : "success");
-                buildLogRepo.save(buildLog); // ✅ Save here after logs are set
-            });
-
-            return ResponseEntity.ok("Build triggered");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Webhook processing failed: " + e.getMessage());
+        // 👇 Early return if it's not the dev branch
+        if (ref == null || !ref.equals("refs/heads/dev")) {
+            log.info("Push event ignored: not targeting dev branch. Received ref: {}", ref);
+            return ResponseEntity.ok("Ignored: not dev branch");
         }
+
+        BuildLogs buildLog = new BuildLogs();
+        Map<String, Object> repository = (Map<String, Object>) payload.get("repository");
+        String repoFullName = (String) repository.get("full_name");
+        String accessToken = (String) payload.get("access_token");
+
+        // Extract commits
+        List<CommitInfo> commitInfos = webhookActions.parseCommits(payload, buildLog);
+
+        // Create BuildLogs entry
+        buildLog.setRepoName(repoFullName);
+        buildLog.setCommits(commitInfos);
+        buildLog.setTimestamp(Instant.now().toString()); // consistent ISO format
+        buildLog.setStatus("pending"); // initial status
+        buildLog.setMessage("Build triggered from push event");
+
+        // Async build trigger
+        webhookActions.triggerBuildAsync(repoFullName, accessToken, buildLog);
+        return ResponseEntity.ok("Build triggered");
+
     }
-
-
 
 
     @GetMapping("/buildlogs")
