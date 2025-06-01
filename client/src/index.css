@@ -6,7 +6,7 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    'Changa One', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -14,4 +14,43 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.btn-dark {
+  background-color: #212121; /* Dark charcoal for a sleek look */
+  border: 2px solid #343a40; /* Slightly defined border */
+  height: 2.5rem; /* Increased height for better clickability */
+  padding: 8px 16px; /* More padding for comfortable interaction */
+  color: white; /* High contrast for readability */
+  border-radius: 6px; /* Subtle rounded corners */
+  font-size: 14px; /* Slightly larger for improved visibility */
+  font-weight: 600; /* Enhancing text boldness */
+  cursor: pointer; /* Ensures button feels interactive */
+  transition: all 0.3s ease; /* Smooth effect for hover/focus */
+  display: flex;
+  align-items: center; /* Centering icon and text */
+  gap: 4px;
+}
+
+/* Hover effect */
+.btn-dark:hover {
+  background-color: #343a40;
+  border-color: #212121;
+}
+
+/* Active click effect */
+.btn-dark:active {
+  background-color: #1a1a1a;
+  border-color: #404040;
+}
+
+/* Focus effect for accessibility */
+.btn-dark:focus {
+  outline: 3px solid rgba(255, 255, 255, 0.6); /* High contrast outline */
+}
+
+.changa-one-regular {
+  font-family: 'Changa One', sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }

@@ -1,127 +1,3 @@
-// import React from 'react';
-// import {
-//   UserIcon,
-//   ClockIcon,
-//   Cog8ToothIcon,
-//   PlusIcon,
-// } from '@heroicons/react/24/outline';
-// import SidebarItem from './functional/sideBarItem';
-
-// const Dashboard = () => {
-//   return (
-//     <div className="   bg-white text-black">
-//       <div className="flex pt-6 px-8">
-//         {/* Sidebar */}
-//         <aside className="w-64 pr-6 bg-gray-100 border border-gray-200 rounded-lg shadow-sm py-4">
-//           <ul className="space-y-2 mb-6 px-3">
-//             <SidebarItem icon={PlusIcon} label="New Item" route={'new-item'} />
-//             <SidebarItem
-//               icon={Cog8ToothIcon}
-//               label="Open Projects"
-//               route={'open-projects'}
-//             />
-//             <SidebarItem icon={UserIcon} label="People" route={'people'} />
-//             <SidebarItem
-//               icon={ClockIcon}
-//               label="Build History"
-//               route={'build-history'}
-//             />
-//             <SidebarItem
-//               icon={Cog8ToothIcon}
-//               label="Manage Jenkins"
-//               route={'manage'}
-//             />
-//           </ul>
-
-//           {/* Collapsible Sections */}
-//           <div className="px-3 text-sm text-gray-700">
-//             <details open className="mb-3">
-//               <summary className="bg-gray-200 px-3 py-2 rounded font-medium cursor-pointer">
-//                 Build Queue
-//               </summary>
-//               <div className="px-3 py-2 text-gray-600">
-//                 No builds in the queue.
-//               </div>
-//             </details>
-//             <details open>
-//               <summary className="bg-gray-200 px-3 py-2 rounded font-medium cursor-pointer">
-//                 Build Executor Status
-//               </summary>
-//               <div className="px-3 py-2 text-gray-700 space-y-1">
-//                 <div>
-//                   1 <span className="text-gray-500">Idle</span>
-//                 </div>
-//                 <div>
-//                   2 <span className="text-gray-500">Idle</span>
-//                 </div>
-//               </div>
-//             </details>
-//           </div>
-//         </aside>
-
-//         {/* Main Content */}
-//         <main className="flex-1 flex justify-center items-start">
-//           <div className="w-full max-w-2xl bg-white border border-gray-200 rounded-xl shadow p-10 mt-10">
-//             <div className="flex justify-between items-center mb-6">
-//               <h1 className="text-3xl font-bold text-black">
-//                 Welcome to Jenkins!
-//               </h1>
-//               <button className="text-gray-600 text-base flex items-center gap-1 hover:text-black">
-//                 <PlusIcon className="h-5 w-5" />
-//                 Add description
-//               </button>
-//             </div>
-
-//             <p className="text-gray-700 mb-8 text-base">
-//               This page is where your Jenkins jobs will be displayed. To get
-//               started, you can set up distributed builds or start building a
-//               software project.
-//             </p>
-
-//             <div className="mb-8">
-//               <h2 className="font-semibold mb-3 text-xl text-gray-800">
-//                 Start building your software project
-//               </h2>
-//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition mb-2 text-lg font-medium">
-//                 Create a job <span className="text-xl">&rarr;</span>
-//               </button>
-//             </div>
-
-//             <div>
-//               <h2 className="font-semibold mb-3 text-xl text-gray-800">
-//                 Set up a distributed build
-//               </h2>
-//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition mb-2 text-lg font-medium">
-//                 Set up an agent <span className="text-xl">&rarr;</span>
-//               </button>
-//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition mb-2 text-lg font-medium">
-//                 Configure a cloud <span className="text-xl">&rarr;</span>
-//               </button>
-//               <button className="w-full flex justify-between items-center px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition text-lg font-medium">
-//                 Learn more about distributed builds
-//                 <svg
-//                   className="h-5 w-5 ml-2"
-//                   fill="none"
-//                   stroke="currentColor"
-//                   viewBox="0 0 24 24"
-//                 >
-//                   <path
-//                     d="M14 5l7 7m0 0l-7 7m7-7H3"
-//                     strokeWidth={2}
-//                     strokeLinecap="round"
-//                     strokeLinejoin="round"
-//                   />
-//                 </svg>
-//               </button>
-//             </div>
-//           </div>
-//         </main>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Dashboard;
 
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -137,6 +13,19 @@ const Dashboard = () => {
   const accessToken = getToken();
 
   useEffect(() => {
+    (() => {
+      fetch('http://127.0.0.1:8080/api/logs/all', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+        .then((res) => {
+          res.json();
+        })
+        .then((data) => {
+          console.log(data);
+        });
+    })();
     if (!isAuthenticated()) {
       navigate('/');
       return;
@@ -203,3 +92,84 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+// import { useEffect, useState, useRef } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import { getToken, logout, isAuthenticated } from '../../auth/authSessions';
+// import { useRepo } from '../../../context/RepoContext';
+// import useWebSocket from '../../sub-components/webSocketManager';
+
+// const Dashboard = () => {
+//   const navigate = useNavigate();
+//   const [repos, setRepos] = useState([]);
+//   const [message, setMessage] = useState('');
+//   const hasFetched = useRef(false); // ✅ guard to avoid duplicate fetch
+//   const { setRepoFullName } = useRepo();
+//   const accessToken = getToken();
+
+//   useWebSocket();
+
+//   useEffect(() => {
+//     if (!isAuthenticated()) {
+//       navigate('/');
+//       return;
+//     }
+
+//     if (hasFetched.current) return; // ✅ skip if already fetched
+//     hasFetched.current = true;
+
+//     const fetchRepos = async () => {
+//       try {
+//         const res = await fetch('https://api.github.com/user/repos', {
+//           headers: {
+//             Authorization: `Bearer ${accessToken}`,
+//           },
+//         });
+//         const data = await res.json();
+//         setRepos(data);
+//       } catch (err) {
+//         setMessage('Failed to load repos');
+//       }
+//     };
+
+//     fetchRepos();
+//   }, [navigate]);
+
+//   const createWebhook = (repoFullName) => {
+//     fetch('http://localhost:8080/api/webhook/create', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ repoFullName, accessToken }),
+//     })
+//       .then((res) => res.text())
+//       .then(() => setMessage('Webhook created'))
+//       .catch(() => setMessage('Failed to create webhook'));
+//   };
+
+//   const openWebhook = (repoFullName) => {
+//     console.log(repoFullName);
+//     setRepoFullName(repoFullName);
+//     navigate(`/webhook`);
+//   };
+
+//   return (
+//     <div>
+//       <h2>Your Repositories</h2>
+//       {repos.map((repo) => (
+//         <div key={repo.id}>
+//           <span>{repo.full_name}</span>
+//           <button onClick={() => createWebhook(repo.full_name)}>
+//             Create Webhook
+//           </button>
+
+//           <button onClick={() => openWebhook(repo.full_name)}>
+//             Open Webhook
+//           </button>
+//         </div>
+//       ))}
+//       <p>{message}</p>
+//     </div>
+//   );
+// };
+
+// export default Dashboard;

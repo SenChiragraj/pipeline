@@ -11,6 +11,7 @@ import NewItem from './components/pages/dashboard/functional/new-item';
 import BuildHistory from './components/pages/dashboard/functional/buildHistory';
 import Manage from './components/pages/dashboard/functional/manage';
 import People from './components/pages/dashboard/functional/people';
+import Document from './components/pages/Document';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/" element={<Login />} />
             <Route path="/callback" element={<Callback />} />
             <Route path="/webhook" element={<Webhook />} />
+            <Route path="/docs" element={<Document />} />
 
             {/* Protected Dashboard and its sub-routes */}
             <Route element={<ProtectedRoute />}>
