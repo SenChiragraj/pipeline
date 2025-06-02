@@ -1,6 +1,7 @@
 package com.server.server.service;
 
 import com.server.server.models.BuildLogs;
+import com.server.server.models.PipeLineResponse;
 import com.server.server.repository.BuildLogRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class C_IntegrationService {
@@ -20,6 +22,12 @@ public class C_IntegrationService {
     @Autowired
     NotificationService notificationService;
 
+    @Autowired
+    GitService gitService;
+
+    @Autowired
+    PipelineService pipelineService;
+
     private static final Logger logger = LoggerFactory.getLogger(C_IntegrationService.class);
 
     public StringBuilder triggerBuild(String repoFullName, String accessToken)  {
@@ -28,63 +36,26 @@ public class C_IntegrationService {
 //        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 
 //        String repoName = repoFullName.split("/")[1];
-        String cloneDir = "D:/PROJECTS/cicd/server/tmp/ci-repos/";
 
         try {
             // 1. Clean previous clone (cross-platform)
 
-            // 2. Clone the repo
-            String cloneCommand = "git clone --depth=1 https://oauth2:" + accessToken + "@github.com/" + repoFullName + ".git " + cloneDir;
-            Process cloneProcess = Runtime.getRuntime().exec(cloneCommand);
-            logProcessOutput(cloneProcess, logBuilder);
-            int cloneExit = cloneProcess.waitFor();
-            if (cloneExit != 0) {
-                status = "failed";
-                logBuilder.append("Git clone failed\n");
-                return logBuilder;
-            }
-            logBuilder.append("Cloning completed.\n");
-            logger.info("Cloning complete");
-            // 3. Run npm install
-            String npmCmd = getNpmCommand();
-            ProcessBuilder installPb = new ProcessBuilder(npmCmd, "install");
-            installPb.directory(new File(cloneDir));
-            installPb.redirectErrorStream(true);
-            Process installProcess = installPb.start();
-            logProcessOutput(installProcess, logBuilder);
-            int installExit = installProcess.waitFor();
-            if (installExit != 0) {
-                status = "failed";
-                logBuilder.append("npm install failed\n");
-//                saveLogAndReturn(repoFullName, status, logBuilder, timestamp);
-                return logBuilder;
-            }
-            logBuilder.append("npm install completed.\n");
+            CompletableFuture<PipeLineResponse> future = pipelineService.runPipelineAsync(repoFullName, accessToken, logBuilder);
+            PipeLineResponse pipeLineResponse = future.get();  // This blocks until the pipeline finishes
 
-
-            // 4. Run npm test
-            ProcessBuilder testPb = new ProcessBuilder(npmCmd, "test");
-            testPb.directory(new File(cloneDir));
-            testPb.redirectErrorStream(true);
-            Process testProcess = testPb.start();
-            logProcessOutput(testProcess, logBuilder);
-            int testExit = testProcess.waitFor();
-            if (testExit != 0) {
-                status = "failed";
-                logBuilder.append("npm test failed\n");
-                throw new Exception("Test Cases Failed");
+            if (pipeLineResponse.isSuccess()) {
+                status = "passed";
+                logBuilder.append("✅ All steps passed\n");
             } else {
-                logBuilder.append("Test Cases Passed✅.\n");
+                status = "failed";
+                logBuilder.append("❌ Pipeline failed: ").append(pipeLineResponse.getMessage()).append("\n");
             }
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            deleteDirectory(new File(cloneDir));
-            logBuilder.append("Cleaned previous clone.\n");
+            logBuilder.append("Cleaned previous " + "clone.\n");
             notificationService.sendBuildStatus("Build Completed" + repoFullName);
         }
         return logBuilder;
@@ -103,28 +74,7 @@ public class C_IntegrationService {
 
     // Helper to delete directory recursively (cross-platform)
 
-    private void deleteDirectory(File dir) {
-        try {
-            if (!dir.exists()) return;
 
-            if (dir.isDirectory()) {
-                File[] entries = dir.listFiles();
-                if (entries != null) {
-                    for (File file : entries) {
-                        deleteDirectory(file);
-                    }
-                }
-            }
-
-            if (!dir.delete()) {
-                throw new IOException("Failed to delete directory or file.");
-            }
-//            logger.info("Deleted Clone🗑️");
-        } catch (Exception e) {
-            // Log a generic error without exposing the full path
-            logger.error("Failed to delete a directory during cleanup: {}", e.getMessage());
-        }
-    }
 
 
     // Helper to get correct npm command for OS
