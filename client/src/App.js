@@ -7,15 +7,15 @@ import { RepoProvider } from './context/RepoContext';
 import { ToastContainer } from 'react-toastify';
 import ProtectedRoute from './components/routes/ProtectedRoutes';
 
-import NewItem from './components/pages/dashboard/functional/new-item';
-import BuildHistory from './components/pages/dashboard/functional/buildHistory';
-import Manage from './components/pages/dashboard/functional/manage';
-import People from './components/pages/dashboard/functional/people';
 import Document from './components/pages/Document';
+import CreateHook from './components/pages/dashboard/components/CreateHook';
+import OpenHook from './components/pages/dashboard/components/OpenHook';
+import Logs from './components/pages/dashboard/components/Logs';
+import { UserProvider } from './context/UserContext';
 
 function App() {
   return (
-    <>
+    <UserProvider>
       <RepoProvider>
         <Router>
           <Routes>
@@ -28,19 +28,15 @@ function App() {
             {/* Protected Dashboard and its sub-routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/dashboard/new-item" element={<NewItem />} />
-              <Route path="/dashboard/people" element={<People />} />
-              <Route
-                path="/dashboard/build-history"
-                element={<BuildHistory />}
-              />
-              <Route path="/dashboard/manage" element={<Manage />} />
+              <Route path="/create-hooks" element={<CreateHook />} />
+              <Route path="/open-hooks" element={<OpenHook />} />
+              <Route path="/logs" element={<Logs />} />
             </Route>
           </Routes>
         </Router>
       </RepoProvider>
       <ToastContainer position="top-right" autoClose={5000} />
-    </>
+    </UserProvider>
   );
 }
 

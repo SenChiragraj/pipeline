@@ -2,90 +2,87 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getToken, logout, isAuthenticated } from '../../auth/authSessions';
 import { useRepo } from '../../../context/RepoContext';
+import { useUser } from '../../../context/UserContext';
+import * as Avatar from '@radix-ui/react-avatar';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [repos, setRepos] = useState([]);
-  const [message, setMessage] = useState('');
-  const hasFetched = useRef(false); // ✅ guard to avoid duplicate fetch
+  const hasFetched = useRef(false);
   const { setRepoFullName } = useRepo();
   const accessToken = getToken();
+  const { userDetails, setUserdetails } = useUser();
 
   useEffect(() => {
-    (() => {
-      fetch('http://127.0.0.1:8080/api/logs/all', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-        .then((res) => {
-          res.json();
-        })
-        .then((data) => {
-          console.log(data);
-        });
-    })();
-    if (!isAuthenticated()) {
-      navigate('/');
-      return;
-    }
-
-    if (hasFetched.current) return; // ✅ skip if already fetched
+    if (hasFetched.current) return;
     hasFetched.current = true;
 
-    const fetchRepos = async () => {
-      try {
-        const res = await fetch('https://api.github.com/user/repos', {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        const data = await res.json();
-        setRepos(data);
-      } catch (err) {
-        setMessage('Failed to load repos');
-      }
-    };
+    fetch('https://api.github.com/user', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github+json',
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setUserdetails(data);
+      })
+      .catch((err) => {
+        console.error('Error fetching user info:', err);
+      });
 
-    fetchRepos();
+    if (!isAuthenticated()) {
+      navigate('/');
+    }
   }, [navigate]);
 
-  const createWebhook = (repoFullName) => {
-    fetch('http://localhost:8080/api/webhook/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ repoFullName, accessToken }),
-    })
-      .then((res) => res.text())
-      .then(() => setMessage('Webhook created'))
-      .catch(() => setMessage('Failed to create webhook'));
-  };
-
-  const openWebhook = (repoFullName) => {
-    console.log(repoFullName);
-    setRepoFullName(repoFullName);
-    navigate(`/webhook`);
-  };
-
   return (
-    <div>
-      <h2>Your Repositories</h2>
-      {repos.map((repo) => (
-        <div key={repo.id}>
-          <span>{repo.full_name}</span>
-          <button
-            className="px-2 border-1"
-            onClick={() => createWebhook(repo.full_name)}
-          >
-            Create Webhook
-          </button>
+    <div className="flex flex-col lg:flex-row gap-12 px-8 py-12">
+      {/* Sidebar Actions */}
+      <div className="flex flex-col gap-4 w-full max-w-xs">
+        <h2 className="text-xl font-semibold mb-2">Actions</h2>
+        <button
+          className="btn w-full"
+          onClick={() => navigate('/create-hooks')}
+        >
+          ⚙️ Create Webhooks
+        </button>
+        <button className="btn w-full" onClick={() => navigate('/open-hooks')}>
+          🔓 Open Projects
+        </button>
+        <button className="btn w-full" onClick={() => navigate('/logs')}>
+          📄 Check Logs
+        </button>
+      </div>
 
-          <button onClick={() => openWebhook(repo.full_name)}>
-            Open Webhook
-          </button>
+      {/* Main Section */}
+      <div className="flex flex-col justify-center flex-1">
+        <div className="flex items-center gap-4 mb-6">
+          <Avatar.Root className="w-16 h-16 rounded-full border-2 border-neutral-700 overflow-hidden">
+            <Avatar.Image
+              src={userDetails.avatar_url}
+              alt={userDetails.name}
+              className="w-full h-full object-cover"
+            />
+            <Avatar.Fallback className="flex items-center justify-center h-full text-2xl text-white bg-neutral-700">
+              {userDetails.name ? userDetails.name[0] : 'U'}
+            </Avatar.Fallback>
+          </Avatar.Root>
+
+          <div className="flex flex-col justify-center flex-1">
+            <h1 className="text-2xl sm:text-3xl md:text-6xl font-extrabold leading-tight">
+              <span className="text-4xl">Welcome back</span>
+              <br />
+              <span className="text-[#22ff88] changa-one-regular">
+                {userDetails.name}
+              </span>
+            </h1>
+            <p className="mt-4 text-neutral-400 text-xl max-w-xl">
+              Manage your pipelines, trigger builds, and monitor deployments
+              directly from here.
+            </p>
+          </div>
         </div>
-      ))}
-      <p>{message}</p>
+      </div>
     </div>
   );
 };
