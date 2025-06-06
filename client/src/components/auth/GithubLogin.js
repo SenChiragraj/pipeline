@@ -21,7 +21,7 @@ const GitHubLogin = () => {
   };
 
   return (
-    <button className="btn-dark" onClick={loginWithGitHub}>
+    <button className="btn btn-dark" onClick={loginWithGitHub}>
       Continue with GitHub <ArrowRightIcon className="h-4 w-4" />
     </button>
   );

@@ -2,15 +2,11 @@ package com.server.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.server.actions.WebhookActions;
-import com.server.server.exceptions.InvalidPayloadException;
 import com.server.server.models.BuildLogs;
 import com.server.server.models.CommitInfo;
-import com.server.server.models.CommitUserModel;
 import com.server.server.models.WebhookLog;
 import com.server.server.repository.BuildLogRepo;
 import com.server.server.repository.WebhookLogRepo;
-import com.server.server.service.C_IntegrationService;
-import com.server.server.service.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -22,14 +18,11 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
-//import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 // WebhookController.java
 @Slf4j
@@ -42,14 +35,7 @@ public class WebhookController {
     private BuildLogRepo buildLogRepo;
 
     @Autowired
-    private C_IntegrationService cIntegrationService;
-
-    @Autowired
     private WebhookLogRepo logRepo;
-
-
-    @Autowired
-    private NotificationService notificationService;
 
     @Autowired
     WebhookActions webhookActions;
@@ -228,7 +214,6 @@ public class WebhookController {
             for (Map<String, Object> commit : commits) {
                 String commitId = (String) commit.get("id");
                 String message = (String) commit.get("message");
-                String timestamp = (String) commit.get("timestamp");
 
                 // Simulate test run and status (for demo purpose)
                 String status = Math.random() > 0.5 ? "SUCCESS" : "FAILURE";

@@ -1,17 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRepo } from '../../../../context/RepoContext';
 import { getToken } from '../../../auth/authSessions';
-import { useUser } from '../../../../context/UserContext';
+import { toast } from 'react-toastify';
 
-const CreateHook = () => {
+import * as Form from '@radix-ui/react-form';
+import * as Select from '@radix-ui/react-select';
+import { ChevronDownIcon } from '@radix-ui/react-icons';
+
+const CreateHookForm = ({ onSuccess }) => {
   const navigate = useNavigate();
   const [repos, setRepos] = useState([]);
-  const [message, setMessage] = useState('');
-  const hasFetched = useRef(false);
-  const { setRepoFullName } = useRepo();
+  const [projectName, setProjectName] = useState('');
+  const [repoFullName, setRepoFullName] = useState('');
+  const [errors, setErrors] = useState({ projectName: '', repoName: '' });
+
   const accessToken = getToken();
-  const { userDetails, setUserdetails } = useUser();
 
   useEffect(() => {
     const fetchRepos = async () => {
@@ -24,79 +27,134 @@ const CreateHook = () => {
         const data = await res.json();
         setRepos(data);
       } catch (err) {
-        setMessage('Failed to load repos');
+        toast.error('Failed to load repositories');
       }
     };
 
     fetchRepos();
-  }, []);
+  }, [accessToken]);
 
-  const createWebhook = (repoFullName) => {
-    fetch('http://localhost:8080/api/webhook/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ repoFullName, accessToken }),
-    })
-      .then((res) => res.text())
-      .then(() => setMessage('Webhook created'))
-      .catch(() => setMessage('Failed to create webhook'));
+  const createWebhook = async () => {
+    try {
+      const res = await fetch('http://localhost:8080/api/webhook/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repoFullName, accessToken }),
+      });
+
+      if (!res.ok) throw new Error('Webhook creation failed');
+
+      toast.success('Webhook created successfully!');
+      onSuccess?.(); // Close dialog if provided
+    } catch (error) {
+      toast.error('Failed to create webhook');
+    }
   };
 
-  const openWebhook = (repoFullName) => {
-    setRepoFullName(repoFullName);
-    navigate(`/webhook`);
+  const validate = () => {
+    const newErrors = { projectName: '', repoName: '' };
+    if (!projectName || projectName.trim().length < 3) {
+      newErrors.projectName = 'Project name must be at least 3 characters.';
+    }
+    if (!repoFullName) {
+      newErrors.repoName = 'Please select a repository.';
+    }
+    setErrors(newErrors);
+    return !newErrors.projectName && !newErrors.repoName;
+  };
+
+  async function addToProjects() {
+    try {
+      const params = new URLSearchParams();
+      params.append('name', projectName);
+      params.append('repoName', repoFullName);
+
+      const res = await fetch('http://localhost:8080/api/projects/new', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString(),
+      });
+
+      if (!res.ok) throw new Error('Project creation failed');
+
+      toast.success('Project created successfully!');
+      navigate(`/project/${projectName}`);
+    } catch (error) {
+      toast.error('Failed to create project');
+    }
+  }
+
+  const createProject = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    createWebhook();
+    await addToProjects();
   };
 
   return (
-    <div className="px-8 py-10 max-w-6xl mx-auto bg-white text-gray-800">
-      <div className="flex justify-between">
-        <h2 className="text-3xl font-bold mb-8">Your Repositories</h2>
-        <button className="btn" onClick={() => navigate('/')}>
-          Go Back
+    <Form.Root onSubmit={createProject} className="space-y-6">
+      <Form.Field name="projectName" className="grid gap-2">
+        <Form.Label className="text-sm font-medium text-gray-700">
+          Project Name
+        </Form.Label>
+        <Form.Control asChild>
+          <input
+            type="text"
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            required
+            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </Form.Control>
+        {errors.projectName && (
+          <span className="text-sm text-red-600">{errors.projectName}</span>
+        )}
+      </Form.Field>
+
+      <Form.Field name="repoName" className="grid gap-2">
+        <Form.Label className="text-sm font-medium text-gray-700">
+          Repository
+        </Form.Label>
+        <Select.Root value={repoFullName} onValueChange={setRepoFullName}>
+          <Select.Trigger className="inline-flex items-center justify-between border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <Select.Value placeholder="Select a repository" />
+            <Select.Icon>
+              <ChevronDownIcon />
+            </Select.Icon>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Content className="bg-white border border-gray-300 rounded-md shadow-lg z-50">
+              <Select.Viewport className="p-2">
+                {repos.map((repo) => (
+                  <Select.Item
+                    key={repo.id}
+                    value={repo.full_name}
+                    className="px-4 py-2 rounded hover:bg-gray-100 cursor-pointer"
+                  >
+                    <Select.ItemText>{repo.name}</Select.ItemText>
+                  </Select.Item>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
+        {errors.repoName && (
+          <span className="text-sm text-red-600">{errors.repoName}</span>
+        )}
+      </Form.Field>
+
+      <Form.Submit asChild>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
+        >
+          Create Project
         </button>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {repos.map((repo) => (
-          <div
-            key={repo.id}
-            className="flex flex-col h-44 bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition"
-          >
-            {/* Repo name */}
-            <div className="mb-4">
-              <h3 className="font-medium text-sm text-gray-800 truncate">
-                {repo.full_name}
-              </h3>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex gap-3 justify-start mb-4">
-              <button
-                onClick={() => createWebhook(repo.full_name)}
-                className="text-xs px-3 py-1 border border-gray-300 text-gray-700 rounded hover:bg-gray-100 transition"
-              >
-                ➕ Create
-              </button>
-              <button
-                onClick={() => openWebhook(repo.full_name)}
-                className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-              >
-                🔍 Open
-              </button>
-            </div>
-
-            {/* ID at the bottom */}
-            <div className="mt-auto pt-2 border-t border-gray-200 text-xs text-gray-500">
-              ID: {repo.id}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {message && (
-        <p className="mt-6 text-center text-green-600 font-medium">{message}</p>
-      )}
-    </div>
+      </Form.Submit>
+    </Form.Root>
   );
 };
 
-export default CreateHook;
+export default CreateHookForm;

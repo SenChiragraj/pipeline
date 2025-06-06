@@ -1,14 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getToken, logout, isAuthenticated } from '../../auth/authSessions';
-import { useRepo } from '../../../context/RepoContext';
 import { useUser } from '../../../context/UserContext';
 import * as Avatar from '@radix-ui/react-avatar';
+import { Dialog } from 'radix-ui';
+import CreateProjectTrigger from './components/CreateProjectTrigger';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const hasFetched = useRef(false);
-  const { setRepoFullName } = useRepo();
   const accessToken = getToken();
   const { userDetails, setUserdetails } = useUser();
 
@@ -40,15 +40,7 @@ const Dashboard = () => {
       {/* Sidebar Actions */}
       <div className="flex flex-col gap-4 w-full max-w-xs">
         <h2 className="text-xl font-semibold mb-2">Actions</h2>
-        <button
-          className="btn w-full"
-          onClick={() => navigate('/create-hooks')}
-        >
-          ⚙️ Create Webhooks
-        </button>
-        <button className="btn w-full" onClick={() => navigate('/open-hooks')}>
-          🔓 Open Projects
-        </button>
+        <CreateProjectTrigger />
         <button className="btn w-full" onClick={() => navigate('/logs')}>
           📄 Check Logs
         </button>
@@ -70,7 +62,7 @@ const Dashboard = () => {
 
           <div className="flex flex-col justify-center flex-1">
             <h1 className="text-2xl sm:text-3xl md:text-6xl font-extrabold leading-tight">
-              <span className="text-4xl">Welcome back</span>
+              <span className="text-4xl changa-one-regular">Welcome back</span>
               <br />
               <span className="text-[#22ff88] changa-one-regular">
                 {userDetails.name}

@@ -20,7 +20,7 @@ function Login() {
         {/* Styled GitHub Button */}
         <div className="mt-3 flex flex-col sm:flex-row items-center gap-3">
           <button
-            className="btn-dark px-4 py-2 text-sm sm:text-base"
+            className="btn btn-dark px-4 py-2 text-sm sm:text-base"
             onClick={() => navigate('/docs')}
           >
             Documentation
