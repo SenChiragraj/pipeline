@@ -1,30 +1,14 @@
-# Stage 1: Build the application
-FROM maven:3.9.6-eclipse-temurin-21 AS builder
+# Use a Java 17 Alpine-based image
+FROM eclipse-temurin:17-jdk-alpine
 
-# Set working directory
+# Set working directory inside the container
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
-COPY pom.xml .
-RUN mvn dependency:go-offline
+# Copy the built JAR file into the container
+COPY target/*.jar app.jar
 
-# Copy the rest of the source code
-COPY src ./src
-
-# Package the application
-RUN mvn clean package -DskipTests
-
-# Stage 2: Run the application
-FROM eclipse-temurin:21-jdk-alpine
-
-# Set working directory
-WORKDIR /app
-
-# Copy the built jar from the builder stage
-COPY --from=builder /app/target/*.jar app.jar
-
-# Expose the port your app runs on
+# Expose the Spring Boot default port
 EXPOSE 8080
 
-# Run the application
+# Run the Spring Boot application
 ENTRYPOINT ["java", "-jar", "app.jar"]
