@@ -34,19 +34,19 @@ const CreateHookForm = ({ onSuccess }) => {
     fetchRepos();
   }, [accessToken]);
 
-  const createWebhook = async () => {
-    try {
-      const res = await fetch('http://localhost:8080/api/webhook/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repoFullName, accessToken }),
-      });
+  const createWebhook = () => {
+    console.log(repoFullName, accessToken);
 
-      if (!res.ok) throw new Error('Webhook creation failed');
+    const res = fetch('http://localhost:8080/api/webhook/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ repoFullName, accessToken }),
+    }).then((res) => res.text());
 
+    if (res.ok) {
       toast.success('Webhook created successfully!');
       onSuccess?.(); // Close dialog if provided
-    } catch (error) {
+    } else {
       toast.error('Failed to create webhook');
     }
   };

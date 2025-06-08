@@ -7,7 +7,11 @@ import com.server.server.models.CommitInfo;
 import com.server.server.models.WebhookLog;
 import com.server.server.repository.BuildLogRepo;
 import com.server.server.repository.WebhookLogRepo;
+import com.server.server.service.C_IntegrationService;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +47,9 @@ public class WebhookController {
 
     private static final String GITHUB_API_URL = "https://api.github.com/repos/";
 
+    private static final Logger logger = LoggerFactory.getLogger(C_IntegrationService.class);
+
+
     @PostMapping("/create")
     public ResponseEntity<String> createWebhook(@RequestBody Map<String, String> request) {
         String repoFullName = request.get("repoFullName");
@@ -54,6 +61,8 @@ public class WebhookController {
         if (accessToken == null || accessToken.isEmpty()) {
             throw new IllegalArgumentException("accessToken is required");
         }
+
+        logger.info(repoFullName + " " + accessToken);
 
         String responseBody = webhookActions.createWebhook(repoFullName, accessToken);
         return ResponseEntity.ok(responseBody);
