@@ -38,7 +38,7 @@ public class WebhookActions {
     public String createWebhook(String repoFullName, String accessToken) {
         try {
             HttpClient client = HttpClient.newHttpClient();
-            String webhookUrl = "https://your-public-url/api/webhook/receive";
+            String webhookUrl = "https://pipeline-o6y4.onrender.com/api/webhook/receive";
 
             String jsonPayload = """
                 {
