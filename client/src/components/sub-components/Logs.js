@@ -10,7 +10,9 @@ const Logs = () => {
 
   const fetchLogs = async () => {
     try {
-      const response = await axios.get(`${process.env.BASE_URL}/webhook/logs`);
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/webhook/logs`
+      );
       setLogs(response.data);
     } catch (error) {
       console.error('Failed to load logs', error);

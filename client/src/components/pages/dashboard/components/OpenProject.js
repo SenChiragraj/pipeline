@@ -11,7 +11,9 @@ const OpenProject = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await axios.get(`${process.env.BASE_URL}/projects/all`);
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/projects/all`
+      );
       setProjects(response.data);
     } catch (error) {
       console.error('Failed to fetch projects', error);

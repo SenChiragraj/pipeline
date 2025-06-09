@@ -16,7 +16,7 @@ const Callback = () => {
 
     if (code) {
       axios
-        .get(`${process.env.BASE_URL}/oauth/callback?code=${code}`)
+        .get(`${process.env.REACT_APP_BASE_URL}/oauth/callback?code=${code}`)
         .then((response) => {
           const data = response.data;
           if (data.access_token) {
