@@ -39,7 +39,7 @@ const CreateHookForm = ({ onSuccess }) => {
   const createWebhook = async () => {
     try {
       const response = await axios.post(
-        `${process.env.BASE_URL}/webhook/create`,
+        `${process.env.REACT_APP_BASE_URL}/webhook/create`,
         { repoFullName, accessToken },
         {
           headers: { 'Content-Type': 'application/json' },
@@ -75,7 +75,7 @@ const CreateHookForm = ({ onSuccess }) => {
       params.append('repoName', repoFullName);
 
       const res = await axios.post(
-        `${process.env.BASE_URL}/projects/new`,
+        `${process.env.REACT_APP_BASE_URL}/projects/new`,
         params.toString(), // Pass params directly as the request body
         {
           headers: {

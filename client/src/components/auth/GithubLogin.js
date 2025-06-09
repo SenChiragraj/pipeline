@@ -6,8 +6,8 @@ import { Button } from '@radix-ui/themes';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
 const GitHubLogin = () => {
-  const clientId = process.env.CLIENT_ID;
-  const redirectUri = `${process.env.BASE_URL}/callback`;
+  const clientId = process.env.REACT_APP_CLIENT_ID;
+  const redirectUri = `${process.env.REACT_APP_BASE_URL}/callback`;
   const navigate = useNavigate();
 
   useEffect(() => {
