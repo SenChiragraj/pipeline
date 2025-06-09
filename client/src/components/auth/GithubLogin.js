@@ -7,7 +7,7 @@ import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
 const GitHubLogin = () => {
   const clientId = process.env.REACT_APP_CLIENT_ID;
-  const redirectUri = `${process.env.REACT_APP_BASE_URL}/callback`;
+  const redirectUri = process.env.REACT_APP_REDIRECT_URI;
   const navigate = useNavigate();
 
   useEffect(() => {
