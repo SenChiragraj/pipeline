@@ -1,6 +1,7 @@
 // Callback.js
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Callback = () => {
   const navigate = useNavigate();
@@ -14,9 +15,10 @@ const Callback = () => {
     const code = url.searchParams.get('code');
 
     if (code) {
-      fetch(`http://localhost:8080/oauth/callback?code=${code}`)
-        .then((res) => res.json())
-        .then((data) => {
+      axios
+        .get(`${process.env.BASE_URL}/oauth/callback?code=${code}`)
+        .then((response) => {
+          const data = response.data;
           if (data.access_token) {
             localStorage.setItem('accessToken', data.access_token);
             // Remove the ?code=... from the URL
@@ -27,8 +29,8 @@ const Callback = () => {
             navigate('/');
           }
         })
-        .catch((err) => {
-          console.error('OAuth error:', err);
+        .catch((error) => {
+          console.error('OAuth error:', error);
           navigate('/');
         });
     } else {

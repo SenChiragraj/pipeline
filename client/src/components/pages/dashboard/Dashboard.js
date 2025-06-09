@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getToken, logout, isAuthenticated } from '../../auth/authSessions';
+import { getToken, logout } from '../../auth/authSessions';
 import { useUser } from '../../../context/UserContext';
 import * as Avatar from '@radix-ui/react-avatar';
 import { Dialog } from 'radix-ui';
 import CreateProjectTrigger from './components/CreateProjectTrigger';
+import axios from 'axios';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -16,24 +17,29 @@ const Dashboard = () => {
     if (hasFetched.current) return;
     hasFetched.current = true;
 
-    fetch('https://api.github.com/user', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github+json',
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setUserdetails(data);
-      })
-      .catch((err) => {
-        console.error('Error fetching user info:', err);
+    if (!accessToken) {
+      logout();
+      navigate('/');
+      return;
+    }
+
+    fetchUserDetails();
+  }, [navigate]);
+
+  async function fetchUserDetails() {
+    try {
+      const response = await axios.get('https://api.github.com/user', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/vnd.github+json',
+        },
       });
 
-    if (!isAuthenticated()) {
-      navigate('/');
+      setUserdetails(response.data);
+    } catch (err) {
+      console.error('Error fetching user info:', err);
     }
-  }, [navigate]);
+  }
 
   return (
     <div className="flex flex-col lg:flex-row gap-12 px-8 py-12">

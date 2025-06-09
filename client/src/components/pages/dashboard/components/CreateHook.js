@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import * as Form from '@radix-ui/react-form';
 import * as Select from '@radix-ui/react-select';
 import { ChevronDownIcon } from '@radix-ui/react-icons';
+import axios from 'axios';
 
 const CreateHookForm = ({ onSuccess }) => {
   const navigate = useNavigate();
@@ -16,40 +17,44 @@ const CreateHookForm = ({ onSuccess }) => {
 
   const accessToken = getToken();
 
-  useEffect(() => {
-    const fetchRepos = async () => {
-      try {
-        const res = await fetch('https://api.github.com/user/repos', {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        const data = await res.json();
-        setRepos(data);
-      } catch (err) {
-        toast.error('Failed to load repositories');
-      }
-    };
+  const fetchRepos = async () => {
+    try {
+      const response = await axios.get('https://api.github.com/user/repos', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
+      setRepos(response.data);
+    } catch (err) {
+      toast.error('Failed to load repositories');
+      console.error('Error fetching repositories:', err);
+    }
+  };
+
+  useEffect(() => {
     fetchRepos();
   }, [accessToken]);
 
-  const createWebhook = () => {
-    console.log(repoFullName, accessToken);
+  const createWebhook = async () => {
+    try {
+      const response = await axios.post(
+        `${process.env.BASE_URL}/webhook/create`,
+        { repoFullName, accessToken },
+        {
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
 
-    const res = fetch('http://localhost:8080/api/webhook/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ repoFullName, accessToken }),
-    }).then((res) => res.text());
-
-    if (res.ok) {
       toast.success('Webhook created successfully!');
       onSuccess?.(); // Close dialog if provided
-    } else {
+    } catch (error) {
       toast.error('Failed to create webhook');
+      console.error('Error creating webhook:', error);
     }
   };
+
+  // Call the function
 
   const validate = () => {
     const newErrors = { projectName: '', repoName: '' };
@@ -69,15 +74,20 @@ const CreateHookForm = ({ onSuccess }) => {
       params.append('name', projectName);
       params.append('repoName', repoFullName);
 
-      const res = await fetch('http://localhost:8080/api/projects/new', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: params.toString(),
-      });
+      const res = await axios.post(
+        `${process.env.BASE_URL}/projects/new`,
+        params.toString(), // Pass params directly as the request body
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      );
 
-      if (!res.ok) throw new Error('Project creation failed');
+      if (!res.ok) {
+        toast.error('Failed to create project');
+        return;
+      }
 
       toast.success('Project created successfully!');
       navigate(`/project/${projectName}`);

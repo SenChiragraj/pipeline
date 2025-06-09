@@ -1,15 +1,22 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const OpenProject = () => {
   const [projects, setProjects] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/projects/all')
-      .then((res) => res.json())
-      .then(setProjects)
-      .catch(() => console.error('Failed to fetch projects'));
+    fetchProjects();
   }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const response = await axios.get(`${process.env.BASE_URL}/projects/all`);
+      setProjects(response.data);
+    } catch (error) {
+      console.error('Failed to fetch projects', error);
+    }
+  };
 
   const filteredProjects = projects.filter((project) =>
     `${project.name} ${project.repoName}`

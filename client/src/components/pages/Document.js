@@ -74,7 +74,7 @@ export default function Document() {
         </div>
 
         {/* Button Section */}
-        <button className="btn-dark" onClick={() => goBack()}>
+        <button className="btn before:btn-dark" onClick={() => goBack()}>
           Go Back
         </button>
       </header>

@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const Logs = () => {
   const [logs, setLogs] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/webhook/logs')
-      .then((res) => res.json())
-      .then((data) => setLogs(data))
-      .catch((err) => console.error('Failed to load logs', err));
+    fetchLogs();
   }, []);
+
+  const fetchLogs = async () => {
+    try {
+      const response = await axios.get(`${process.env.BASE_URL}/webhook/logs`);
+      setLogs(response.data);
+    } catch (error) {
+      console.error('Failed to load logs', error);
+    }
+  };
 
   return (
     <div>

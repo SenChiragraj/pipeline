@@ -5,9 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const BuildEventListener = () => {
   useEffect(() => {
-    const eventSource = new EventSource(
-      'http://localhost:8080/api/build/stream'
-    );
+    const eventSource = new EventSource(`${process.env.BASE_URL}/build/stream`);
 
     // eventSource.addEventListener('buildEvent', (event) => {
     //   toast.info(event.data, { position: 'bottom-right' });

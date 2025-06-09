@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 
 const useWebSocket = () => {
   useEffect(() => {
-    const socket = new SockJS('http://localhost:8080/ws');
+    const socket = new SockJS(`${process.env.BASE_URL}/ws`); // Ensure this URL matches your server's WebSocket endpoint
     const stompClient = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
