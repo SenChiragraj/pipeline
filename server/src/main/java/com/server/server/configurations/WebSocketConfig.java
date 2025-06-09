@@ -10,7 +10,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/api/ws").setAllowedOrigins("https://pipeline-pink.vercel.app/").withSockJS();
+        registry.addEndpoint("/api/ws").setAllowedOrigins("https://pipeline-pink.vercel.app").withSockJS();
     }
 
 
